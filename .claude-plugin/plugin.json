@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "e2e-automation",
+  "displayName": "Playwright E2E Automation",
+  "version": "1.0.0",
+  "description": "基于项目前端代码自动生成 Playwright E2E 测试脚本，并运行测试产出 HTML 测试报告",
+  "author": {
+    "name": "Developer"
+  },
+  "keywords": [
+    "playwright",
+    "e2e",
+    "testing",
+    "automation",
+    "test-generation"
+  ],
+  "defaultEnabled": true
+}

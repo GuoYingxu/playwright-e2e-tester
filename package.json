@@ -1,0 +1,19 @@
+{
+  "name": "playwrite-e2e-tester",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright E2E 测试自动化项目 — Claude Code 插件驱动",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report e2e/reports",
+    "install:browsers": "playwright install chromium",
+    "setup": "npm install && npx playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@playwright/mcp": "^0.0.75"
+  }
+}

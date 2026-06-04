@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "description": "Playwright 浏览器自动化 MCP 服务器 — 用于测试脚本生成时与页面交互",
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp",
+        "--headless",
+        "--browser=chromium"
+      ],
+      "env": {}
+    }
+  }
+}
