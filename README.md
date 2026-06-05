@@ -115,6 +115,22 @@
 - [Claude Code](https://code.claude.com) 已安装并可用
 - 被测试的前端应用可在本地运行（仅 generate/run 需要，plan 不需要）
 
+## 安装插件到 Claude Code
+
+```bash
+# 克隆仓库 → 安装依赖 → 启动 Claude Code 并挂载
+git clone <本仓库地址>
+cd playwright-e2e-tester
+npm install && npx playwright install chromium
+claude --plugin-dir <插件文件位置 比如 E:/playwright-e2e-tester>
+```
+
+启动后插件命令即刻可用。如需在 Claude Code 运行中重新加载插件：
+
+```
+/reload-plugins
+```
+
 ## 快速开始
 
 ### 1. 安装依赖
