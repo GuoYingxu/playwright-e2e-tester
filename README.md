@@ -15,6 +15,14 @@
    │                            需要项目运行（也可选择静态分析模式）
    │                            输出：e2e/tests/*.spec.ts + 更新 plan 状态
    ▼
+/e2e-coverage          ───→   统计覆盖率（计划覆盖率 + 路由覆盖率）
+   │                            纯静态分析，无需运行项目
+   │                            输出：写入 plan.md 覆盖率概览
+   ▼
+/e2e-fix               ───→   修正已有测试用例
+   │                            需要项目运行
+   │                            修复失效选择器、断言，或补充新用例
+   ▼
 /e2e-run               ───→   运行测试并产出报告
                              输出：e2e/reports/index.html
 ```
@@ -31,6 +39,8 @@
 |-----------------|-------------------------|------|
 | `/e2e-plan [页面名]` | `/e2e-automation:e2e-plan [页面名]` | 分析项目代码，生成测试计划（plan.md） |
 | `/e2e-generate [页面名]` | `/e2e-automation:e2e-generate [页面名]` | 根据 plan.md 生成 Playwright E2E 测试脚本 |
+| `/e2e-coverage [页面名]` | `/e2e-automation:e2e-coverage [页面名]` | 统计计划覆盖率 + 路由覆盖率，写入 plan.md |
+| `/e2e-fix [页面名]` | `/e2e-automation:e2e-fix [页面名]` | 修正已有测试用例（修复选择器、断言等） |
 | `/e2e-run [参数]` | `/e2e-automation:e2e-run [参数]` | 运行测试并生成 HTML 测试报告 |
 
 ### `/e2e-plan` — 生成测试计划
@@ -60,6 +70,26 @@
 
 **生成完成后**自动更新 `e2e/plan.md` 状态：`❌` → `✅`，进度可视化。
 
+### `/e2e-coverage` — 统计测试覆盖率
+
+解析 `e2e/plan.md` 的 ✅/❌ 状态和项目路由，统计两个维度并写入 plan.md：
+
+| 维度 | 说明 |
+|------|------|
+| **计划覆盖率** | 已完成测试用例数 / 计划总用例数 |
+| **路由覆盖率** | 已生成测试文件的路由数 / 项目总路由数 |
+
+**纯静态分析，无需运行项目。**
+
+统计完成后在 `e2e/plan.md` 的 `## 覆盖率概览` 区块实时反映进度。
+
+```
+📊 计划覆盖率: 12/20 (60%)
+📊 路由覆盖率: 5/8 (62.5%)
+```
+
+支持参数过滤：`/e2e-coverage 登录` 只统计"登录"相关页面。
+
 ### `/e2e-run` — 运行测试
 
 | 参数 | 效果 |
@@ -69,6 +99,18 @@
 | `--debug` | 调试模式（Playwright Inspector） |
 | `<文件名>` | 只运行文件名匹配的测试 |
 | `<文件名> --headed` | 文件名过滤 + 有头模式 |
+
+### `/e2e-fix` — 修正测试用例
+
+读取已生成的 `.spec.ts` 文件，通过 MCP 浏览器重新分析页面，诊断并修复以下问题：
+
+- **选择器失效** — 页面改版导致 `getByRole` / `getByText` 等定位器找不到元素
+- **断言错误** — 预期的标题、文本、可见状态与实际页面不符
+- **交互路径变化** — 点击/填表顺序或目标元素发生变化
+
+**需要项目运行。** 修正前会输出诊断报告供用户确认，不会未经同意直接修改文件。
+
+支持参数过滤：`/e2e-fix login` 只修正 login.spec.ts。
 
 ---
 
@@ -270,12 +312,18 @@ set LOGIN_URL=/login
 ├── commands/
 │   ├── e2e-plan.md              # /e2e-plan 命令描述
 │   ├── e2e-generate.md          # /e2e-generate 命令描述
+│   ├── e2e-coverage.md          # /e2e-coverage 命令描述
+│   ├── e2e-fix.md               # /e2e-fix 命令描述
 │   └── e2e-run.md               # /e2e-run 命令描述
 ├── skills/
 │   ├── e2e-plan/
 │   │   └── SKILL.md             # 生成测试计划的完整指令
 │   ├── e2e-generate/
 │   │   └── SKILL.md             # 生成测试代码的完整指令
+│   ├── e2e-coverage/
+│   │   └── SKILL.md             # 统计覆盖率的完整指令
+│   ├── e2e-fix/
+│   │   └── SKILL.md             # 修正测试用例的完整指令
 │   └── e2e-run/
 │       └── SKILL.md             # 运行测试的完整指令
 ├── e2e/
@@ -316,6 +364,22 @@ set LOGIN_URL=/login
 5. **生成代码** — 为每个页面创建 `e2e/tests/<page>.spec.ts`
 6. **冲突处理** — 已有文件询问覆盖/跳过/补充
 7. **状态同步** — 更新 `e2e/plan.md`：❌ → ✅
+
+### 覆盖率统计（e2e-coverage）
+
+1. **解析 plan.md** — 读取 `e2e/plan.md`，统计 ✅/❌ 状态计算计划覆盖率
+2. **扫描路由** — 扫描项目源码发现所有路由（复用 e2e-plan 逻辑），与 `e2e/tests/*.spec.ts` 做匹配计算路由覆盖率
+3. **写入 plan.md** — 在 `## 覆盖率概览` 区块插入/更新两个维度的统计结果
+4. **纯静态** — 无需运行项目、无需浏览器、无需登录
+
+### 测试修正（e2e-fix）
+
+1. **扫描文件** — 列出 `e2e/tests/` 下已有测试文件，支持参数过滤
+2. **检查运行** — 确认项目可访问，获取当前页面结构
+3. **诊断对比** — 逐一比对测试中的选择器/断言与实际页面，标记问题
+4. **报告方案** — 输出诊断报告，列出每项问题及修正建议，等待用户确认
+5. **执行修正** — 按用户确认的方案修改文件，不重写整个文件
+6. **同步计划** — 如新增用例，同步更新 `e2e/plan.md`
 
 ### 测试运行（e2e-run）
 
@@ -376,6 +440,22 @@ A: 优先在代码中添加 `data-testid` 属性，Playwright 的 `getByTestId()
 
 **Q: 如何看到浏览器操作过程？**
 A: 使用 `/e2e-run --headed` 以有头模式运行测试，浏览器窗口可见。
+
+---
+
+## 路线图
+
+### 未来功能
+
+| 功能 | 说明 | 依赖 |
+|------|------|------|
+| **代码覆盖率**（V8 Coverage） | 通过 Playwright 内置的 V8 Coverage API 收集测试执行过程中的 JS/CSS 代码执行情况，生成语句覆盖率、分支覆盖率、行覆盖率等指标，在 `/e2e-coverage` 中展示 | `monocart-coverage-reports` 或等效工具；被测应用需提供 sourcemap |
+
+实现计划：
+1. 在 `e2e/coverage.setup.ts` 中通过 `page.coverage.startJSCoverage()` / `page.coverage.startCSSCoverage()` 注入覆盖率采集
+2. 在测试文件的 `beforeAll`/`afterAll` 中收集原始数据，写入 `e2e/coverage/raw-data.json`
+3. 用 `monocart-coverage-reports` 处理 raw data，生成 HTML 报告到 `e2e/coverage/`
+4. 整合到 `/e2e-coverage` 命令中，输出代码覆盖率并与计划覆盖率、路由覆盖率并列展示
 
 ---
 
